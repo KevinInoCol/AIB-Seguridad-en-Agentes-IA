@@ -1,8 +1,8 @@
 """
-Orquestador del agente inmobiliario: ensambla modelo, prompt, memoria y guardrails.
+Orquestador del agente inmobiliario: ensambla modelo, prompt, memoria, tools y guardrails.
 
-Sin tools por ahora. Los recursos se crean una sola vez (init_resources) y
-cada conversación se distingue por su thread_id.
+Los recursos se crean una sola vez (init_resources) y cada conversación se
+distingue por su thread_id.
 """
 
 import os
@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from chat_history import build_checkpointer
 from guardrails import build_guardrails
 from model_config import build_llm
+from tools import build_tools
 
 load_dotenv()
 
@@ -44,7 +45,7 @@ def init_resources() -> None:
     global _agent
     _agent = create_agent(
         model=build_llm(),
-        tools=[],
+        tools=build_tools(),
         system_prompt=_render_system_prompt(),
         checkpointer=build_checkpointer(),
         middleware=build_guardrails(),
