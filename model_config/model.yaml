@@ -1,10 +1,25 @@
 # Configuración del LLM del agente inmobiliario.
 # Config pura: sin código y sin prompt. La lee model_config/__init__.py.
+#
+# El proveedor activo se elige con LLM_PROVIDER en el .env: openai | ollama.
+# Si no está definido, se usa `default_provider`.
 
-llm:
-  provider: openai
-  # Modelo de razonamiento: reasoning_effort solo lo aceptan estos modelos
-  # (gpt-4.1 lo rechaza). Override: OPENAI_MODEL en el .env.
-  model: gpt-5.4-mini
-  reasoning_effort: low   # minimal | low | medium | high
-  # Sin temperature: los modelos de razonamiento solo admiten el valor por defecto.
+default_provider: openai
+
+providers:
+  openai:
+    # Modelo de razonamiento: reasoning_effort solo lo aceptan estos modelos
+    # (gpt-4.1 lo rechaza). Override: OPENAI_MODEL.
+    model: gpt-5.1
+    reasoning_effort: low   # none | minimal | low | medium | high
+    # Sin temperature: los modelos de razonamiento solo admiten el valor por defecto.
+
+  ollama:
+    # Modelo local servido por Ollama. Override: OLLAMA_MODEL.
+    # Descárgalo antes con: ollama pull qwen3:8b
+    model: qwen3:8b
+    base_url: http://localhost:11434   # Override: OLLAMA_BASE_URL
+    temperature: 0.3
+    # Qwen3 piensa por defecto. false = responde directo (más rápido) y evita
+    # que las etiquetas <think> se cuelen en la respuesta al cliente.
+    reasoning: false
