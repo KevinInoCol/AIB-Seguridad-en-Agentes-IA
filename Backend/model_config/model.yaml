@@ -16,10 +16,12 @@ providers:
 
   ollama:
     # Modelo local servido por Ollama. Override: OLLAMA_MODEL.
-    # Descárgalo antes con: ollama pull qwen3:8b
-    model: qwen3:8b
+    # Descárgalo antes con: ollama pull qwen2.5:1.5b
+    model: qwen2.5:1.5b
     base_url: http://localhost:11434   # Override: OLLAMA_BASE_URL
     temperature: 0.3
-    # Qwen3 piensa por defecto. false = responde directo (más rápido) y evita
-    # que las etiquetas <think> se cuelen en la respuesta al cliente.
-    reasoning: false
+    # qwen2.5 no es un modelo de razonamiento (no tiene la capacidad "thinking"),
+    # así que no se le envía el parámetro: null = comportamiento por defecto.
+    # Si cambias a un modelo que razona (p. ej. qwen3), pon false para que las
+    # etiquetas <think> no se cuelen en la respuesta al cliente.
+    reasoning: null
