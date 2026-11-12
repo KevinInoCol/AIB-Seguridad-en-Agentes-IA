@@ -1,0 +1,5 @@
+langchain>=1.5
+langchain-openai>=1.7
+langgraph>=1.2
+pyyaml
+python-dotenv

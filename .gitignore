@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+*.json.key
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Symlink a una skill global (apunta fuera del repo)
+.claude/skills/agent-project-structure

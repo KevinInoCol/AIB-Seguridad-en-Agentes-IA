@@ -1,0 +1,10 @@
+# Configuración del LLM del agente inmobiliario.
+# Config pura: sin código y sin prompt. La lee model_config/__init__.py.
+
+llm:
+  provider: openai
+  # Modelo de razonamiento: reasoning_effort solo lo aceptan estos modelos
+  # (gpt-4.1 lo rechaza). Override: OPENAI_MODEL en el .env.
+  model: gpt-5.4-mini
+  reasoning_effort: low   # minimal | low | medium | high
+  # Sin temperature: los modelos de razonamiento solo admiten el valor por defecto.
