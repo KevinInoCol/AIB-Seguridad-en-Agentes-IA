@@ -11,6 +11,25 @@ const SUGERENCIAS = [
 
 const nuevoThreadId = () => crypto.randomUUID()
 
+// Nombres legibles de los filtros de Model Armor.
+const NOMBRE_FILTRO = {
+  pi_and_jailbreak: 'Prompt injection / jailbreak',
+  malicious_uris: 'URL maliciosa',
+  sdp: 'Datos sensibles',
+  csam: 'Contenido CSAM',
+  'rai:hate_speech': 'Discurso de odio',
+  'rai:dangerous': 'Contenido peligroso',
+  'rai:sexually_explicit': 'Contenido sexual',
+  'rai:harassment': 'Acoso',
+}
+
+function describirGuardrail(g) {
+  const donde = g.stage === 'input' ? 'Mensaje bloqueado' : 'Respuesta bloqueada'
+  if (g.error) return `${donde}: Model Armor no respondió (fail-closed)`
+  const filtros = g.filters.map((f) => NOMBRE_FILTRO[f] ?? f).join(', ')
+  return `${donde} por Model Armor${filtros ? ` · ${filtros}` : ''}`
+}
+
 export default function App() {
   const [health, setHealth] = useState(null)
   const [healthError, setHealthError] = useState(null)
@@ -40,8 +59,15 @@ export default function App() {
     setMessages((prev) => [...prev, { role: 'user', content: mensaje }])
     setLoading(true)
     try {
-      const reply = await sendMessage(mensaje, threadId)
-      setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
+      const { reply, guardrail } = await sendMessage(mensaje, threadId)
+      setMessages((prev) => {
+        const next = [...prev]
+        // Si se bloqueó la entrada, marca también el mensaje del usuario.
+        if (guardrail?.stage === 'input') {
+          next[next.length - 1] = { ...next[next.length - 1], blocked: true }
+        }
+        return [...next, { role: 'assistant', content: reply, guardrail }]
+      })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -79,6 +105,18 @@ export default function App() {
           </div>
         </div>
         <div className="header-actions">
+          {health && (
+            <span
+              className={`guard-badge ${health.guardrails?.enabled ? 'on' : 'off'}`}
+              title={
+                health.guardrails?.enabled
+                  ? `Template: ${health.guardrails.template} · fail-${health.guardrails.fail_mode}`
+                  : 'Guardrails desactivados (MODEL_ARMOR_ENABLED=false)'
+              }
+            >
+              {health.guardrails?.enabled ? 'Model Armor activo' : 'Sin guardrails'}
+            </span>
+          )}
           <span
             className={`model-badge ${healthError ? 'off' : health ? 'on' : ''}`}
             title={healthError ?? 'Proveedor y modelo activos en el backend'}
@@ -113,7 +151,8 @@ export default function App() {
           <ul className="messages">
             {messages.map((m, i) => (
               <li key={i} className={`msg ${m.role}`}>
-                <div className="bubble">{m.content}</div>
+                <div className={`bubble ${m.blocked ? 'blocked' : ''}`}>{m.content}</div>
+                {m.guardrail && <div className="guard-note">{describirGuardrail(m.guardrail)}</div>}
               </li>
             ))}
             {loading && (

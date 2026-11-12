@@ -43,4 +43,7 @@ if __name__ == "__main__":
             continue
         if mensaje.lower() in COMANDOS_SALIDA:
             break
-        print(f"Agente: {responder(mensaje, thread_id)}\n")
+        respuesta, guardrail = responder(mensaje, thread_id)
+        if guardrail:
+            print(f"[guardrail] bloqueado en {guardrail['stage']}: {guardrail['filters'] or guardrail['error']}")
+        print(f"Agente: {respuesta}\n")

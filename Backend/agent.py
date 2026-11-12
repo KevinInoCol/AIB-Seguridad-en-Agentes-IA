@@ -1,5 +1,5 @@
 """
-Orquestador del agente inmobiliario: ensambla modelo, prompt y memoria.
+Orquestador del agente inmobiliario: ensambla modelo, prompt, memoria y guardrails.
 
 Sin tools por ahora. Los recursos se crean una sola vez (init_resources) y
 cada conversación se distingue por su thread_id.
@@ -15,6 +15,7 @@ from langchain.agents import create_agent
 from dotenv import load_dotenv
 
 from chat_history import build_checkpointer
+from guardrails import build_guardrails
 from model_config import build_llm
 
 load_dotenv()
@@ -46,15 +47,20 @@ def init_resources() -> None:
         tools=[],
         system_prompt=_render_system_prompt(),
         checkpointer=build_checkpointer(),
+        middleware=build_guardrails(),
     )
 
 
-def responder(mensaje: str, thread_id: str) -> str:
-    """Envía un mensaje al agente dentro de la conversación `thread_id`."""
+def responder(mensaje: str, thread_id: str) -> tuple[str, dict | None]:
+    """Envía un mensaje al agente dentro de la conversación `thread_id`.
+
+    Devuelve (respuesta, guardrail): guardrail es None si nada se bloqueó, o
+    {"blocked", "stage": "input"|"output", "filters", "error"} si se bloqueó.
+    """
     if _agent is None:
         init_resources()
     resultado = _agent.invoke(
         {"messages": [{"role": "user", "content": mensaje}]},
         config={"configurable": {"thread_id": thread_id}},
     )
-    return resultado["messages"][-1].text
+    return resultado["messages"][-1].text, resultado.get("guardrail")

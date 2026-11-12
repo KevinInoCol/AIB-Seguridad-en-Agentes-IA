@@ -173,10 +173,42 @@ button:disabled {
 
 .msg {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .msg.user {
-  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+/* Guardrails */
+.guard-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.guard-badge.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.msg.user .bubble.blocked {
+  background: transparent;
+  color: var(--muted);
+  border: 1px dashed var(--off);
+  text-decoration: line-through;
+}
+
+.guard-note {
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 0.75rem;
 }
 
 .bubble {

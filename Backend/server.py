@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 from agent import BOT_NAME, EMPRESA, init_resources, responder
+from guardrails import guardrails_info
 from model_config import load_model_config
 
 load_dotenv()
@@ -31,8 +32,16 @@ class ChatRequest(BaseModel):
     thread_id: str = Field(min_length=1, max_length=100)
 
 
+class GuardrailResult(BaseModel):
+    blocked: bool
+    stage: str  # "input" (mensaje del usuario) | "output" (respuesta del modelo)
+    filters: list[str]
+    error: str | None = None
+
+
 class ChatResponse(BaseModel):
     reply: str
+    guardrail: GuardrailResult | None = None
 
 
 @asynccontextmanager
@@ -58,6 +67,7 @@ def health() -> dict:
         "model": cfg["model"],
         "bot_name": BOT_NAME,
         "empresa": EMPRESA,
+        "guardrails": guardrails_info(),
     }
 
 
@@ -65,8 +75,8 @@ def health() -> dict:
 async def chat(req: ChatRequest) -> ChatResponse:
     """Envía un mensaje al agente dentro de la conversación `thread_id`."""
     try:
-        reply = await run_in_threadpool(responder, req.message, req.thread_id)
+        reply, guardrail = await run_in_threadpool(responder, req.message, req.thread_id)
     except Exception as exc:  # el detalle va al log del servidor, no al cliente
         print(f"[chat] error en thread {req.thread_id}: {exc!r}")
         raise HTTPException(status_code=502, detail="El modelo no respondió. Revisa el backend.")
-    return ChatResponse(reply=reply)
+    return ChatResponse(reply=reply, guardrail=guardrail)

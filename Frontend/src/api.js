@@ -16,6 +16,6 @@ export async function sendMessage(message, threadId) {
     const data = await res.json().catch(() => ({}))
     throw new Error(data.detail || `Error del backend (${res.status})`)
   }
-  const data = await res.json()
-  return data.reply
+  // { reply, guardrail: null | { blocked, stage: 'input'|'output', filters, error } }
+  return res.json()
 }
